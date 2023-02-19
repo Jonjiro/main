@@ -1,129 +1,152 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# I build this project to practice and learn more  python. The source code is from techwithtim.
+import random # import module 
 
-# C extensions
-*.so
+MAX_LINES = 3
+MAX_BET = 100
+MIN_BET = 1
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+ROWS = 3
+COLS = 3
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+symbol_count = {
+    "A": 2,
+    "B": 4,
+    "C": 6,
+    "D": 8,
+}
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+symbol_value = {
+    "A": 5,
+    "B": 4,
+    "C": 3,
+    "D": 2,
+}
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
+def check_winnings(columns, lines, bet, values):
+    winnings = 0
+    winnings_lines = []
+    for line in range(lines):
+        symbol = columns[0][line]
+        for column in columns:
+            symbol_to_check = column[line]
+            if symbol != symbol_to_check:
+                break
+        else:
+            winnings += values[symbol] * bet
+            winnings_lines.append(line + 1)
 
-# Translations
-*.mo
-*.pot
+    return winnings, winnings_lines
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
-# Flask stuff:
-instance/
-.webassets-cache
 
-# Scrapy stuff:
-.scrapy
+def get_slot_machine_spin(rows,cols,symbols):
+    all_symbols = []
+    for symbol, symbol_count in symbols.items():
+        for _ in range (symbol_count):
+            all_symbols.append(symbol)
 
-# Sphinx documentation
-docs/_build/
+    columns = []
+    for _ in range(cols):
+        column = []
+        current_symbols = all_symbols [:]
+        for _ in range (rows):
+            value = random.choice(current_symbols)
+            current_symbols.remove(value)
+            column.append(value)
+            
+        columns.append(column)
 
-# PyBuilder
-target/
+    return columns
 
-# Jupyter Notebook
-.ipynb_checkpoints
+def print_slot_machine(columns):
+    for row in range(len(columns[0])):
+        for i, column in enumerate(columns):
+            if i != len(columns) - 1:
+                print(column[row], end="|")
+            else:
+                print(column[row], end="")
 
-# IPython
-profile_default/
-ipython_config.py
+        print()
 
-# pyenv
-.python-version
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
+def deposit():
+    while True:
+        amount = input("What would you like to deposit? $")
+        if amount.isdigit():
+            amount = int(amount)
+            if amount > 0:
+                break
+            else:
+                print("Amount must be greater than 0.")
+        else:
+            print("Please enter a number.")
+    
+    return amount
 
-# SageMath parsed files
-*.sage.py
+def get_the_number_of_lines():
+    while True:
+        lines = input(
+            "Enter the number of lines to bet on (1-" + str (MAX_LINES) + ")? ")
+        if lines.isdigit():
+            lines = int(lines)
+            if 1 <= lines <= MAX_LINES:
+                break
+            else:
+                print("Enter a valid number of lines. ")
+        else:
+            print("Please enter a number.")
+    
+    return lines
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+def get_bet():
+    while True:
+        amount = input("What would you like to bet on each line? $")
+        if amount.isdigit():
+            amount = int(amount)
+            if MIN_BET <= amount <= MAX_BET:
+                break
+            else:
+                print(f"Amount must be between ${MIN_BET} - ${MAX_BET}.")
+        else:
+            print("Please enter a number.")
 
-# Spyder project settings
-.spyderproject
-.spyproject
+    return amount
 
-# Rope project settings
-.ropeproject
 
-# mkdocs documentation
-/site
+def spin(balance):
+    lines = get_the_number_of_lines()
+    while True:
+        bet = get_bet()
+        total_bet = bet * lines
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+        if total_bet > balance:
+            print(
+                f"You do not have enough to bet that amount, your current balance is: ${balance}")
+        else:
+            break
 
-# Pyre type checker
-.pyre/
+    print(f"You are betting ${bet} on {lines} lines. Total bet is equal to: ${total_bet}")
+
+    slots = get_slot_machine_spin(ROWS, COLS, symbol_count)
+    print_slot_machine(slots)
+    winnings, winning_lines = check_winnings(slots, lines, bet, symbol_value)
+    print(f"You won! ${winnings}.")
+    print(f"You won on lines: ",*winning_lines)
+    return winnings - total_bet
+
+
+def main():
+    balance = deposit()
+    while True:
+        print(f"Current balance is ${balance}")
+        answer = input("Press enter to play (q to quit).")
+        if answer == "q":
+            break
+        balance += spin(balance)
+   
+
+    print(f"You left with ${balance}.")
+
+main()
